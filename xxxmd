@@ -26,15 +26,18 @@ local Window = Fluent:CreateWindow({
     Size = UDim2.fromOffset(580, 460),
     Acrylic = false,
     Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.P
+    MinimizeKey = Enum.KeyCode.LeftControl
 })
+
+
 
 local Main = Window:AddTab({ Title = "Main", Icon = "home" })
 local Teleport = Window:AddTab({ Title = "Island", Icon = "globe" })
 local Item = Window:AddTab({ Title = "Item", Icon = "boxes" })
 local Level = Window:AddTab({ Title = "Farm Level", Icon = "apple" })
-local Trade = Window:AddTab({ Title = "Trade", Icon = "gift" }) 
-local Setting = Window:AddTab({ Title = "Setting", Icon = "settings" })
+local Trade = Window:AddTab({ Title = "Trade", Icon = "gift" })
+local Misc = Window:AddTab({ Title = "Misc", Icon = "file-text" })
+--local Setting = Window:AddTab({ Title = "Setting", Icon = "settings" })
 
 do
     Main:AddToggle("va_Main_1", {
@@ -116,6 +119,7 @@ do
 
     Main:AddToggle("va_Main_4", {
         Title = "[ 🤑 ] Sell All",
+        Description = "Selling all fish anywhere",
         Default = false,
         Callback = function(v)
             getgenv().AutoSellAll = v
@@ -125,6 +129,25 @@ do
                     while task.wait(3) do
                         if getgenv().AutoSellAll then
                             game:GetService("ReplicatedStorage").events.selleverything:InvokeServer()
+                        end
+                    end
+                end)
+            end)
+        end
+    })
+
+    Main:AddToggle("va_Main_7", {
+        Title = "[ 🧠 ] Auto Appraiser",
+        Description = "Hold fish and near moosewood",
+        Default = false,
+        Callback = function(v)
+            getgenv().AutoAppraiser = v
+            
+            task.spawn(function()
+                pcall(function()
+                    while task.wait(1) do
+                        if getgenv().AutoAppraiser then
+                            workspace:WaitForChild("world"):WaitForChild("npcs"):WaitForChild("Appraiser"):WaitForChild("appraiser"):WaitForChild("appraise"):InvokeServer()
                         end
                     end
                 end)
@@ -394,7 +417,7 @@ Item:AddButton({
         end
     })
 
-    Setting:AddToggle("va_Setting_1", {
+    Misc:AddToggle("va_Setting_1", {
         Title = "[💯 ] Anti AFK",
         Default = true,
         Callback = function(v)
@@ -419,7 +442,7 @@ Item:AddButton({
     })
     
 
-    Setting:AddToggle("va_Setting_2", {
+    Misc:AddToggle("va_Setting_2", {
         Title = "[ 🔍 ] Invisicam",
         Default = true,
         Callback = function(v)
@@ -433,7 +456,7 @@ Item:AddButton({
         end
     })
 
-      Setting:AddToggle("va_Setting_3", {
+    Misc:AddToggle("va_Setting_3", {
         Title = "[ 💡 ] FullBright",
         Default = true,
         Callback = function(v)
@@ -546,7 +569,7 @@ Item:AddButton({
     })
     
 
-    Setting:AddToggle("va_Setting_3", {
+    Misc:AddToggle("va_Setting_3", {
         Title = "[ 🔕 ] Disable Effect/UI",
         Default = false,
         Callback = function(v)
@@ -577,7 +600,7 @@ Item:AddButton({
         end)
     end)
 
-    Setting:AddToggle("va_Setting_4", {
+    Misc:AddToggle("va_Setting_4", {
         Title = "[ ◽ ] Disable Background Rendering",
         Default = false,
         Callback = function(v)
@@ -585,7 +608,7 @@ Item:AddButton({
         end
     })
 
-     Setting:AddToggle("va_Setting_5", {
+    Misc:AddToggle("va_Setting_5", {
         Title = "[ 👁‍🗨 ] Disable Displayname",
         Default = true,
         Callback = function(v)
@@ -598,7 +621,7 @@ Item:AddButton({
         end
     })
 
-    Setting:AddButton({ 
+    Misc:AddButton({ 
         Title = "[ 🤡 ] Infinite Yield",
         Description = nil,
         Callback = function(a)
@@ -606,7 +629,6 @@ Item:AddButton({
             loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
         end
     })
-    
 
     InputService.WindowFocusReleased:Connect(function()
         if Rendering then
@@ -625,6 +647,15 @@ Item:AddButton({
         end
     end)
 end
+
+Fluent:Notify({
+    Title = "You dick so small.",
+    Content = "The script has been loaded.",
+    Duration = 5
+})
+
+InterfaceManager:BuildInterfaceSection(Settings)
+SaveManager:BuildConfigSection(Settings)
 
 InterfaceManager:SetLibrary(Fluent)
 InterfaceManager:SetFolder("nigga56")
