@@ -625,10 +625,35 @@ Item:AddButton({
         Title = "[ 🤡 ] Infinite Yield",
         Description = nil,
         Callback = function(a)
-            print("Infinite Yield Button Clicked")
             loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
         end
     })
+
+Trade:AddToggle("va_Trading_1", { 
+    Title = "[ ✅ ] Auto trade accept",
+    Description = nil,
+    Callback = function(v)
+        getgenv().Autotrade = v  
+
+        task.spawn(function()
+            pcall(function()
+                while task.wait(0.1) do  
+                    if getgenv().Autotrade then
+                        local player = game.Players.LocalPlayer
+                        local offerGui = player.PlayerGui.hud:WaitForChild("safezone", 5):WaitForChild("bodyannouncements", 5):WaitForChild("offer", 5)
+                        if offerGui and offerGui:FindFirstChild("confirm") then
+                            local confirmButton = offerGui.confirm
+                            firesignal(confirmButton.MouseButton1Click)
+                        end
+                    else
+                        break
+                    end
+                end
+            end)
+        end)
+    end
+})
+
 
     InputService.WindowFocusReleased:Connect(function()
         if Rendering then
@@ -660,3 +685,4 @@ SaveManager:BuildConfigSection(Settings)
 InterfaceManager:SetLibrary(Fluent)
 InterfaceManager:SetFolder("nigga56")
 Window:SelectTab(1)
+
