@@ -579,7 +579,7 @@ Item:AddButton({
 
     Setting:AddToggle("va_Setting_4", {
         Title = "[ ◽ ] Disable Background Rendering",
-        Default = true,
+        Default = false,
         Callback = function(v)
             getgenv().Rendering = v
         end
