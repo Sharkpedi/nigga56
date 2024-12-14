@@ -1,688 +1,122 @@
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
-local VirtualInputManager = cloneref(game:GetService('VirtualInputManager'))
-local InputService = cloneref(game:GetService('UserInputService'))
-local TweenService = cloneref(game:GetService("TweenService"))
-local GuiService = cloneref(game:GetService('GuiService'))
-local RunService = cloneref(game:GetService("RunService"))
-local Players = cloneref(game:GetService("Players"))
-local plr = cloneref(Players.LocalPlayer)
-local TeleportList = {}
-
-local function getchar()
-    return plr.Character or plr.CharacterAdded:Wait()
-end
-
-for i,v in pairs(game:GetService("Workspace").world.spawns.TpSpots:GetChildren()) do
-    if v:IsA("BasePart") then
-        table.insert(TeleportList, v.Name)
-    end
-end
 
 local Window = Fluent:CreateWindow({
-    Title = "[🐟] Fisch " .. Fluent.Version,
-    SubTitle = "by nigga56 vanilla x dulux sharkped",
+    Title = "Blue Lock: Rivals",
+    SubTitle = "by sharkped",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
     Acrylic = false,
-    Theme = "Dark",
+    Theme = "Darker",
     MinimizeKey = Enum.KeyCode.LeftControl
 })
 
+local Tabs = {
+    Main = Window:AddTab({ Title = "Main", Icon = "" }),
+}
 
-
-local Main = Window:AddTab({ Title = "Main", Icon = "home" })
-local Teleport = Window:AddTab({ Title = "Island", Icon = "globe" })
-local Item = Window:AddTab({ Title = "Item", Icon = "boxes" })
-local Level = Window:AddTab({ Title = "Farm Level", Icon = "apple" })
-local Trade = Window:AddTab({ Title = "Trade", Icon = "gift" })
-local Misc = Window:AddTab({ Title = "Misc", Icon = "file-text" })
---local Setting = Window:AddTab({ Title = "Setting", Icon = "settings" })
+local Options = Fluent.Options
 
 do
-    Main:AddToggle("va_Main_1", {
-        Title = "[ 🎈 ] Auto Cast",
-        Default = false,
-        Callback = function(v)
-            getgenv().AutoCast = v
-
-            task.spawn(function()
-                pcall(function()
-                    while task.wait() do
-                        if getgenv().AutoCast then
-                            if not plr.PlayerGui:FindFirstChild("shakeui") then
-                                if getchar():FindFirstChildOfClass("Tool") then
-                                    getchar():FindFirstChildOfClass("Tool").events.cast:FireServer(100, 1)
-                                else
-                                    for i,v in next, plr.Backpack:GetChildren() do
-                                        if string.find(v.Name, "Rod") then
-                                            getchar().Humanoid:EquipTool(v)
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end)
-            end)
-        end
+    Fluent:Notify({
+        Title = "Notification",
+        Content = "This is a notification",
+        SubContent = "SubContent",
+        Duration = 5 
     })
 
-    Main:AddToggle("va_Main_2", {
-        Title = "[ 🎣 ] Auto Shake",
-        Default = false,
-        Callback = function(v)
-            getgenv().AutoShake = v
+local desiredStyle = nil 
+local isRolling = false
 
-            task.spawn(function()
-                pcall(function()
-                    while task.wait() do
-                        if getgenv().AutoShake then
-                            if plr.PlayerGui:WaitForChild("shakeui") then
-                                local button = plr.PlayerGui.shakeui.safezone:FindFirstChild("button")
-                                GuiService.SelectedObject = button
-                                GuiService.SelectedObject = button
-                                VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Return, false, game)
-                                VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Return, false, game)
-                                task.wait(0.01)
-                                GuiService.SelectedObject = nil
-                            end
-                        end
-                    end
-                end)
-            end)
-        end
-    })
-
-    Main:AddToggle("va_Main_3", {
-        Title = "[ 🦈 ] Auto Reel",
-        Default = false,
-        Callback = function(v)
-            getgenv().AutoReel = v
-
-            task.spawn(function()
-                pcall(function()
-                    game.Players.LocalPlayer.PlayerGui.ChildAdded:Connect(function(a)
-                        if getgenv().AutoReel then
-                            if a.Name == "reel" then 
-                                local ran = math.random(99, 200)
-                                game.ReplicatedStorage.events.reelfinished:FireServer(ran, true)
-                                task.wait(0.1)
-                                getchar():FindFirstChildOfClass("Tool").events.cast:FireServer(43)
-                            end
-                        end
-                    end)
-                end)
-            end)
-        end
-    })
-
-    Main:AddToggle("va_Main_4", {
-        Title = "[ 🤑 ] Sell All",
-        Description = "Selling all fish anywhere",
-        Default = false,
-        Callback = function(v)
-            getgenv().AutoSellAll = v
-
-            task.spawn(function()
-                pcall(function()
-                    while task.wait(3) do
-                        if getgenv().AutoSellAll then
-                            game:GetService("ReplicatedStorage").events.selleverything:InvokeServer()
-                        end
-                    end
-                end)
-            end)
-        end
-    })
-
-    Main:AddToggle("va_Main_7", {
-        Title = "[ 🧠 ] Auto Appraiser",
-        Description = "Hold fish and near moosewood",
-        Default = false,
-        Callback = function(v)
-            getgenv().AutoAppraiser = v
-            
-            task.spawn(function()
-                pcall(function()
-                    while task.wait(1) do
-                        if getgenv().AutoAppraiser then
-                            workspace:WaitForChild("world"):WaitForChild("npcs"):WaitForChild("Appraiser"):WaitForChild("appraiser"):WaitForChild("appraise"):InvokeServer()
-                        end
-                    end
-                end)
-            end)
-        end
-    })
-
-    Main:AddToggle("va_Main_5", {
-        Title = "[ 🧊 ] Freeze Character",
-        Default = false,
-        Callback = function(v)
-            getgenv().FreezeCharacter = v
-
-            if getgenv().FreezeCharacter then
-                getchar().HumanoidRootPart.Anchored = true
-            else
-                getchar().HumanoidRootPart.Anchored = false
-            end
-        end
-    })
-
-    Main:AddToggle("va_Main_6", {
-        Title = "[ 💦 ] No Drowning",
-        Default = true,
-        Callback = function(v)
-            getgenv().NoDrowning = v
-
-            if getgenv().NoDrowning then
-                getchar().client.oxygen.Disabled = true
-            else
-                getchar().client.oxygen.Disabled = false
-            end
-        end
-    })
-
-    Teleport:AddDropdown("va_Teleport_1", {
-        Title = "[ 💊 ] Select Teleport",
-        Values = TeleportList,
-        Multi = false,
-        Default = nil,
-        Callback = function(Value)
-            getgenv().Teleport = Value
-        end
-    })
-
-    Teleport:AddButton({
-        Title = "[ 😺 ] Teleport To Island",
-        Description = "Teleport To Island",
-        Callback = function()
-            for i,v in pairs(game:GetService("Workspace").world.spawns.TpSpots:GetChildren()) do
-                if v.Name == getgenv().Teleport and v:IsA("BasePart") then
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.CFrame * CFrame.new(0,5,0)
-                end
-            end
-        end
-    })
-
-    Level:AddToggle("va_Level_1", {
-        Title = "[ ✅ ] Auto Buy Cage",
-        Default = false,
-        Callback = function(v)
-            getgenv().AutoBuyCage = v
-            
-            if not getgenv().AutoBuyCage then return end
-            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").world.interactables["Crab Cage"]["Crab Cage"]["Cage"].cage.CFrame
-
-            for i=0,4 do
-                task.spawn(function()
-                    while getgenv().AutoBuyCage do task.wait()
-                        task.spawn(function()
-                            pcall(function()
-                                while getgenv().AutoBuyCage do task.wait()
-                                    local part
-                                    for i, v in next, game:GetService("Workspace").world.interactables["Crab Cage"]:GetChildren() do
-                                        if v:FindFirstChild("purchaserompt") then
-                                            part = v
-                                        end
-                                    end
-
-                                    fireproximityprompt(part.purchaserompt)
-                                    if plr.PlayerGui.over:WaitForChild("prompt") then
-                                        firesignal(game.Players.LocalPlayer.PlayerGui.over.prompt.confirm["MouseButton1Click"])
-                                    end
-                                end
-                            end)
-                        end)
-                    end
-                end)
-            end
-        end
-    })
-
-    Level:AddToggle("va_Level_2", {
-        Title = "[ 🦀 ] Auto Place Cage",
-        Default = false,
-        Callback = function(v)
-            getgenv().PlaceCage = v
-        end
-    })
-
-    Level:AddSlider("va_Level_3", {
-        Title = "[ ⌚ ] Place Cage Speed",
-        Description = nil,
-        Default = 0.05,
-        Min = 0,
-        Max = 1,
-        Rounding = 2,
-        Callback = function(v)
-            getgenv().PlaceCageSpeed = v
-        end
-    })
-
-    task.spawn(function()
-        while task.wait(getgenv().PlaceCageSpeed) do
-            if getgenv().PlaceCage then
-                getchar()["Crab Cage"].Deploy:FireServer({ CFrame = getchar().HumanoidRootPart.CFrame })
-            end
-        end
-    end)
-
-    Level:AddToggle("va_Level_4", {
-        Title = "[ ⛏️ ] Pickup Crabs",
-        Default = false,
-        Callback = function(v)
-            getgenv().AutoBuyCage = v
-
-            task.spawn(function()
-                pcall(function()
-                    while task.wait(1) do 
-                        if getgenv().AutoBuyCage then
-                            for _, v in next, workspace.active:GetChildren() do
-                                if v.Name == plr.Name and v:FindFirstChild("Cage") and v:FindFirstChild("Cage").cage.done.Enabled == true then
-                                    if plr:DistanceFromCharacter(v:GetPivot().Position) <= 15 then
-                                        fireproximityprompt(v.Prompt)
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end)
-            end)
-        end
-    })
-
-    Level:AddToggle("va_Level_5", {
-        Title = "[ 🎃 ] Auto Move (Fix Ping)",
-        Default = false,
-        Callback = function(v)
-            getgenv().AutoMove = v
-
-            if not getgenv().AutoMove then return end
-                
-            task.spawn(function()
-                while getgenv().AutoMove do task.wait()
-                    local tween1 = TweenService:Create(getchar():WaitForChild("HumanoidRootPart"), TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {CFrame = CFrame.new(-1263.35071, -233.711105, -2995.62744) * CFrame.Angles(0, math.rad(90), 0)})
-                    tween1:Play()
-                    tween1.Completed:Wait()
-
-                    local tween2 = TweenService:Create(getchar():WaitForChild("HumanoidRootPart"), TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {CFrame = CFrame.new(-1260.83997, -233.711121, -2745.60327) * CFrame.Angles(0, math.rad(90), 0)})
-                    tween2:Play()
-                    tween2.Completed:Wait()
-                end
-            end)
-        end
-    })
-
-    Item:AddButton({
-        Title = "[ 🍀 ] Buy Luck [$5000]",
-        Description = nil,
-        Callback = function()
-            local OldPostiton = getchar().HumanoidRootPart.CFrame
-
-            getchar().HumanoidRootPart.CFrame = CFrame.new(-928.135254, 223.28476, -998.565796)
-            task.wait(2)
-            fireproximityprompt(workspace.world.npcs.Merlin.dialogprompt)
-            task.wait(1)
-            workspace:WaitForChild("world"):WaitForChild("npcs"):WaitForChild("Merlin"):WaitForChild("Merlin"):WaitForChild("luck"):InvokeServer()
-            task.wait(1)
-            getchar().HumanoidRootPart.CFrame = OldPostiton
-        end
-    })
-
-     Item:AddButton({
-        Title = "[ 🧿 ] Buy Relic [$11,000]",
-        Description = nil,
-        Callback = function()
-            local OldPostiton = getchar().HumanoidRootPart.CFrame
-
-            getchar().HumanoidRootPart.CFrame = CFrame.new(-928.135254, 223.28476, -998.565796)
-            task.wait(2)
-            fireproximityprompt(workspace.world.npcs.Merlin.dialogprompt)
-            task.wait(1)
-            workspace:WaitForChild("world"):WaitForChild("npcs"):WaitForChild("Merlin"):WaitForChild("Merlin"):WaitForChild("power"):InvokeServer()
-            task.wait(1)
-            getchar().HumanoidRootPart.CFrame = OldPostiton
-        end
-    })
-
-
-    Item:AddDropdown("va_Relic_1", {
-        Title = "[ 🔮 ] Select Buy Totem",
-        Values = {"Sundial ( 2000 C$ )", "Aurora ( 500,000 C$)"},
-        Multi = false,
-        Default = nil,
-         Callback = function(Value)
-            if Value == "Sundial ( 2000 C$ )" then
-            getgenv().SelectedRelic = "Sundial"
-        elseif Value == "Aurora ( 500,000 C$)" then
-            getgenv().SelectedRelic = "Aurora"
-        end
-    end
-})
-
-Item:AddButton({
-    Title = "[ 😺 ] Teleport To Buy Totem",
-    Description = "Teleport To Buy Totem",
-    Callback = function()
-        local selectedRelic = getgenv().SelectedRelic
-        
-        if selectedRelic == "Sundial" then
-            local OldPosition = getchar().HumanoidRootPart.CFrame
-            getchar().HumanoidRootPart.CFrame = CFrame.new(-1148.55261, 134.499969, -1075.3103)
-            task.wait(2)
-
-            local sundialTotem = game:GetService("Workspace").world.interactables:FindFirstChild("Sundial Totem")
-            if sundialTotem then
-                fireproximityprompt(sundialTotem:WaitForChild("purchaserompt"))
-            end
-
-            local plr = game.Players.LocalPlayer
-            local prompt = plr.PlayerGui:WaitForChild("over"):WaitForChild("prompt")
-            if prompt then
-                firesignal(prompt.confirm["MouseButton1Click"])
-            end
-
-            task.wait(1)
-            getchar().HumanoidRootPart.CFrame = OldPosition
-        elseif selectedRelic == "Aurora" then
-            local OldPosition = getchar().HumanoidRootPart.CFrame
-            getchar().HumanoidRootPart.CFrame = CFrame.new(-1811.51709, -136.912506, -3281.6355)
-            task.wait(2)
-
-            local auroraTotem = game:GetService("Workspace").world.interactables:FindFirstChild("Aurora Totem")
-            if auroraTotem then
-                fireproximityprompt(auroraTotem:WaitForChild("purchaserompt"))
-            end
-
-            local plr = game.Players.LocalPlayer
-            local prompt = plr.PlayerGui:WaitForChild("over"):WaitForChild("prompt")
-            if prompt then
-                firesignal(prompt.confirm["MouseButton1Click"])
-            end
-
-            task.wait(1)
-            getchar().HumanoidRootPart.CFrame = OldPosition
-        end
-    end
-})
-
-
-
-    Level:AddButton({
-        Title = "[ 🦛 ] Teleport To Deepslate Caves",
-        Description = nil,
-        Callback = function()
-            getchar().HumanoidRootPart.CFrame = CFrame.new(-1634.8053, -231.073013, -2899.27515)
-        end
-    })
-
-    Misc:AddToggle("va_Setting_1", {
-        Title = "[💯 ] Anti AFK",
-        Default = true,
-        Callback = function(v)
-            getgenv().AntiAFK = v
-
-
-            task.spawn(function()
-                pcall(function()
-                    while task.wait(320) do
-                        if getgenv().AntiAFK then
-                            local anti = game:GetService("VirtualUser")
-                            plr.Idled:connect(function()
-                                anti:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
-                                task.wait(1)
-                                anti:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
-                            end)
-                        end
-                    end
-                end)
-            end)
-        end
-    })
-    
-
-    Misc:AddToggle("va_Setting_2", {
-        Title = "[ 🔍 ] Invisicam",
-        Default = true,
-        Callback = function(v)
-            getgenv().Invisicam = v
-
-            if getgenv().Invisicam then
-                plr.DevCameraOcclusionMode = "Invisicam"
-            else
-                plr.DevCameraOcclusionMode = "Zoom"
-            end
-        end
-    })
-
-    Misc:AddToggle("va_Setting_3", {
-        Title = "[ 💡 ] FullBright",
-        Default = true,
-        Callback = function(v)
-            if not _G.FullBrightExecuted then
-    
-                _G.FullBrightEnabled = false
-            
-                _G.NormalLightingSettings = {
-                    Brightness = game:GetService("Lighting").Brightness,
-                    ClockTime = game:GetService("Lighting").ClockTime,
-                    FogEnd = game:GetService("Lighting").FogEnd,
-                    GlobalShadows = game:GetService("Lighting").GlobalShadows,
-                    Ambient = game:GetService("Lighting").Ambient
-                }
-            
-                game:GetService("Lighting"):GetPropertyChangedSignal("Brightness"):Connect(function()
-                    if game:GetService("Lighting").Brightness ~= 1 and game:GetService("Lighting").Brightness ~= _G.NormalLightingSettings.Brightness then
-                        _G.NormalLightingSettings.Brightness = game:GetService("Lighting").Brightness
-                        if not _G.FullBrightEnabled then
-                            repeat
-                                wait()
-                            until _G.FullBrightEnabled
-                        end
-                        game:GetService("Lighting").Brightness = 1
-                    end
-                end)
-            
-                game:GetService("Lighting"):GetPropertyChangedSignal("ClockTime"):Connect(function()
-                    if game:GetService("Lighting").ClockTime ~= 12 and game:GetService("Lighting").ClockTime ~= _G.NormalLightingSettings.ClockTime then
-                        _G.NormalLightingSettings.ClockTime = game:GetService("Lighting").ClockTime
-                        if not _G.FullBrightEnabled then
-                            repeat
-                                wait()
-                            until _G.FullBrightEnabled
-                        end
-                        game:GetService("Lighting").ClockTime = 12
-                    end
-                end)
-            
-                game:GetService("Lighting"):GetPropertyChangedSignal("FogEnd"):Connect(function()
-                    if game:GetService("Lighting").FogEnd ~= 786543 and game:GetService("Lighting").FogEnd ~= _G.NormalLightingSettings.FogEnd then
-                        _G.NormalLightingSettings.FogEnd = game:GetService("Lighting").FogEnd
-                        if not _G.FullBrightEnabled then
-                            repeat
-                                wait()
-                            until _G.FullBrightEnabled
-                        end
-                        game:GetService("Lighting").FogEnd = 786543
-                    end
-                end)
-            
-                game:GetService("Lighting"):GetPropertyChangedSignal("GlobalShadows"):Connect(function()
-                    if game:GetService("Lighting").GlobalShadows ~= false and game:GetService("Lighting").GlobalShadows ~= _G.NormalLightingSettings.GlobalShadows then
-                        _G.NormalLightingSettings.GlobalShadows = game:GetService("Lighting").GlobalShadows
-                        if not _G.FullBrightEnabled then
-                            repeat
-                                wait()
-                            until _G.FullBrightEnabled
-                        end
-                        game:GetService("Lighting").GlobalShadows = false
-                    end
-                end)
-            
-                game:GetService("Lighting"):GetPropertyChangedSignal("Ambient"):Connect(function()
-                    if game:GetService("Lighting").Ambient ~= Color3.fromRGB(178, 178, 178) and game:GetService("Lighting").Ambient ~= _G.NormalLightingSettings.Ambient then
-                        _G.NormalLightingSettings.Ambient = game:GetService("Lighting").Ambient
-                        if not _G.FullBrightEnabled then
-                            repeat
-                                wait()
-                            until _G.FullBrightEnabled
-                        end
-                        game:GetService("Lighting").Ambient = Color3.fromRGB(178, 178, 178)
-                    end
-                end)
-            
-                game:GetService("Lighting").Brightness = 1
-                game:GetService("Lighting").ClockTime = 12
-                game:GetService("Lighting").FogEnd = 786543
-                game:GetService("Lighting").GlobalShadows = false
-                game:GetService("Lighting").Ambient = Color3.fromRGB(178, 178, 178)
-            
-                local LatestValue = true
-                spawn(function()
-                    repeat wait()
-                    until _G.FullBrightEnabled
-                    while wait() do
-                        if _G.FullBrightEnabled ~= LatestValue then
-                            if not _G.FullBrightEnabled then
-                                game:GetService("Lighting").Brightness = _G.NormalLightingSettings.Brightness
-                                game:GetService("Lighting").ClockTime = _G.NormalLightingSettings.ClockTime
-                                game:GetService("Lighting").FogEnd = _G.NormalLightingSettings.FogEnd
-                                game:GetService("Lighting").GlobalShadows = _G.NormalLightingSettings.GlobalShadows
-                                game:GetService("Lighting").Ambient = _G.NormalLightingSettings.Ambient
-                            else
-                                game:GetService("Lighting").Brightness = 1
-                                game:GetService("Lighting").ClockTime = 12
-                                game:GetService("Lighting").FogEnd = 786543
-                                game:GetService("Lighting").GlobalShadows = false
-                                game:GetService("Lighting").Ambient = Color3.fromRGB(178, 178, 178)
-                            end
-                            LatestValue = not LatestValue
-                        end
-                    end
-                end)
-            end
-            
-            _G.FullBrightExecuted = true
-            _G.FullBrightEnabled = not _G.FullBrightEnabled
-        end
-    })
-    
-
-    Misc:AddToggle("va_Setting_3", {
-        Title = "[ 🔕 ] Disable Effect/UI",
-        Default = false,
-        Callback = function(v)
-            getgenv().effect_ui = v
-
-
-            if getgenv().effect_ui then
-                game:GetService("Players").LocalPlayer.PlayerGui.over.Enabled = false
-                game:GetService("Players").LocalPlayer.PlayerGui.hud.Enabled = false
-            else
-                game:GetService("Players").LocalPlayer.PlayerGui.over.Enabled = true
-                game:GetService("Players").LocalPlayer.PlayerGui.hud.Enabled = true
-            end
-        end
-    })
-
-    task.spawn(function()
-        pcall(function()
-            RunService.Heartbeat:Connect(function()
-                if getgenv().effect_ui then
-                    for i,v in next, getchar().HumanoidRootPart:GetChildren() do
-                        if v.ClassName == "ParticleEmitter" and v:IsA("ParticleEmitter") then
-                            v:Remove()
-                        end
-                    end
-                end
-            end)
-        end)
-    end)
-
-    Misc:AddToggle("va_Setting_4", {
-        Title = "[ ◽ ] Disable Background Rendering",
-        Default = false,
-        Callback = function(v)
-            getgenv().Rendering = v
-        end
-    })
-
-    Misc:AddToggle("va_Setting_5", {
-        Title = "[ 👁‍🗨 ] Disable Displayname",
-        Default = true,
-        Callback = function(v)
-            getgenv().Displayname = v
-            if getgenv().Displayname then 
-            getchar().HumanoidRootPart.user.Enabled = false
-            else 
-            getchar().HumanoidRootPart.user.Enabled = true
-            end
-        end
-    })
-
-    Misc:AddButton({ 
-        Title = "[ 🤡 ] Infinite Yield",
-        Description = nil,
-        Callback = function(a)
-            loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
-        end
-    })
-
-Trade:AddToggle("va_Trading_1", { 
-    Title = "[ ✅ ] Auto trade accept",
-    Description = nil,
+local Dropdown = Tabs.Main:AddDropdown("Dropdown", {
+    Title = "Select Styles",
+    Values = {"None", "King", "Chigiri", "Bachira", "Shidou", "Nagi", "Isagi", "Gagamaru"},
+    Multi = false,
+    Default = 1,
     Callback = function(v)
-        getgenv().Autotrade = v  
+        desiredStyle = v  
+        isRolling = true  
 
         task.spawn(function()
-            pcall(function()
-                while task.wait(0.1) do  
-                    if getgenv().Autotrade then
-                        local player = game.Players.LocalPlayer
-                        local offerGui = player.PlayerGui.hud:WaitForChild("safezone", 5):WaitForChild("bodyannouncements", 5):WaitForChild("offer", 5)
-                        if offerGui and offerGui:FindFirstChild("confirm") then
-                            local confirmButton = offerGui.confirm
-                            firesignal(confirmButton.MouseButton1Click)
-                        end
+            local player = game:GetService("Players").LocalPlayer
+            while isRolling do
+                task.wait(0.5)
+                if player:FindFirstChild("PlayerStats") and player.PlayerStats:FindFirstChild("Style") then
+                    local currentStyle = player.PlayerStats.Style.Value
+                    if currentStyle ~= desiredStyle then
+                        game:GetService("ReplicatedStorage").Packages.Knit.Services.StyleService.RE.Spin:FireServer()
                     else
-                        break
+                        isRolling = false  
                     end
                 end
-            end)
+            end
         end)
     end
 })
 
 
-    InputService.WindowFocusReleased:Connect(function()
-        if Rendering then
-        RunService:Set3dRenderingEnabled(false)
-        setfpscap(30)
-        else
-            RunService:Set3dRenderingEnabled(true)
-            setfpscap(120)
-        end
-    end)
+    local Slider = Tabs.Main:AddSlider("Slider", {
+        Title = "Walkspeed",
+        Default = 16,
+        Min = 0,
+        Max = 300,
+        Rounding = 1,
+        Callback = function(Value)
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+        end,
+    })
+
+    local Slider = Tabs.Main:AddSlider("Slider", {
+        Title = "Ball size",
+        Default = 0,
+        Min = 0,
+        Max = 300,
+        Rounding = 1,
+        Callback = function(Value)
+            local football = workspace:FindFirstChild("Football") 
+            if football then
+                football.Size = Vector3.new(Value, Value, Value)
+            end
+        end,
+    })
     
-    InputService.WindowFocused:Connect(function()
-        if Rendering then
-            RunService:Set3dRenderingEnabled(true)
-            setfpscap(120)
+       Tabs.Main:AddButton({
+        Title = "Infinite Yield Admin",
+        Description = nil,
+        Callback = function()
+            loadstring(game:HttpGet(('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'),true))()
         end
-    end)
-end
+    })
 
-Fluent:Notify({
-    Title = "You dick so small.",
-    Content = "The script has been loaded.",
-    Duration = 5
-})
+    Tabs.Main:AddToggle("Toggle", {
+        Title = "Inf Stamina ",
+        Default = true,
+        Callback = function(Value)
+            getgenv().infstamina = Value
+            if getgenv().infstamina then
+                local args = {
+                    [1] = 0/0
+                }
+            
+                game:GetService("ReplicatedStorage"):WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Services"):WaitForChild("StaminaService"):WaitForChild("RE"):WaitForChild("DecreaseStamina"):FireServer(unpack(args))            
+            end
+        end
+    })
 
-InterfaceManager:BuildInterfaceSection(Settings)
-SaveManager:BuildConfigSection(Settings)
 
+    end
+    
+SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
-InterfaceManager:SetFolder("nigga56")
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
 Window:SelectTab(1)
 
+Fluent:Notify({
+    Title = "Fluent",
+    Content = "The script has been loaded.",
+    Duration = 8
+})
+
+SaveManager:LoadAutoloadConfig()
